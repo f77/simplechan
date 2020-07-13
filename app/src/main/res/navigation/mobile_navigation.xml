@@ -12,10 +12,10 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="io.github.f77.simplechan.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_boards"
+        android:name="io.github.f77.simplechan.ui.boards.BoardsFragment"
+        android:label="@string/menu_boards"
+        tools:layout="@layout/fragment_boards" />
 
     <fragment
         android:id="@+id/nav_slideshow"

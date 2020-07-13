@@ -1,4 +1,4 @@
-package io.github.f77.simplechan.ui.gallery
+package io.github.f77.simplechan.ui.boards
 
 import io.github.f77.simplechan.bloc_utils.BlocViewModel
 import io.github.f77.simplechan.bloc_utils.event.InitializedEventInterface
@@ -12,7 +12,7 @@ import io.github.f77.simplechan.states.BoardsSuccessState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class GalleryViewModel : BlocViewModel<BoardsEvent, BoardsState>() {
+class BoardsViewModel : BlocViewModel<BoardsEvent, BoardsState>() {
     private val _imageboardRepository: ImageboardRepositoryInterface = DvachRepository()
 
     init {

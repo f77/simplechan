@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-abstract class BlocViewModel<in EventType, StateType> : ViewModel() {
+abstract class BlocViewModel<in EventType, StateType> : ViewModel(), BlocViewModelInterface<EventType, StateType> {
     private val _dispatcher: CoroutineDispatcher = Dispatchers.IO
-    val state: MutableLiveData<StateType> = MutableLiveData()
+    override val state: MutableLiveData<StateType> = MutableLiveData()
+    override val actions: MutableLiveData<StateType> = MutableLiveData()
 
     /**
      * In this function you can handle any event without providing a state.
@@ -21,7 +22,13 @@ abstract class BlocViewModel<in EventType, StateType> : ViewModel() {
     protected open suspend fun onEvent(event: EventType) {}
 
     /**
-     * In this function you made states as reaction for any events.
+     * Actions are like events, but directed from viewModel to UI.
+     * For example, navigation events, SnackBar, dialog, etc.
+     */
+    protected abstract fun mapEventToAction(event: EventType): Flow<StateType>
+
+    /**
+     * State is a current condition of the UI.
      */
     protected abstract fun mapEventToState(event: EventType): Flow<StateType>
 
@@ -30,11 +37,16 @@ abstract class BlocViewModel<in EventType, StateType> : ViewModel() {
      * Each event runs in it's own coroutine in the scope of current ViewModel.
      * So, if the model suddenly dies, all running processing of the events will safely stop.
      */
-    open fun addEvent(event: EventType) {
+    override fun addEvent(event: EventType) {
         viewModelScope.launch(_dispatcher) {
             onEvent(event)
 
-            // Take all stages
+            // Handle actions.
+            mapEventToAction(event).collect {
+                actions.postValue(it)
+            }
+
+            // Handle states.
             mapEventToState(event).collect {
                 state.postValue(it)
             }

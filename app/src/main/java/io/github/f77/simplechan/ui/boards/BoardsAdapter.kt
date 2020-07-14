@@ -9,7 +9,7 @@ import io.github.f77.simplechan.R
 import io.github.f77.simplechan.entities.BoardEntity
 
 class BoardsAdapter : RecyclerView.Adapter<BoardsAdapter.BoardsViewHolder>() {
-    val dataset: MutableList<BoardEntity> = mutableListOf()
+    var dataset: List<BoardEntity> = mutableListOf()
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and

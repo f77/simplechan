@@ -14,14 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.f77.simplechan.R
-import io.github.f77.simplechan.bloc_utils.action.ItemChangedActionInterface
-import io.github.f77.simplechan.bloc_utils.action.ItemMovedActionInterface
-import io.github.f77.simplechan.bloc_utils.action.ItemRemovedActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
 import io.github.f77.simplechan.states.BoardsSuccessState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
-
+import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipesDefaultObserver
 
 class BoardsFragment : Fragment() {
     private lateinit var boardsViewModel: BoardsViewModel
@@ -61,17 +58,7 @@ class BoardsFragment : Fragment() {
 
         // Observe actions.
         boardsViewModel.actions.observe(viewLifecycleOwner, Observer {
-            when (it) {
-                is ItemRemovedActionInterface -> {
-                    boardsAdapter.notifyItemRemoved(it.position)
-                }
-                is ItemChangedActionInterface -> {
-                    boardsAdapter.notifyItemChanged(it.position)
-                }
-                is ItemMovedActionInterface -> {
-                    boardsAdapter.notifyItemMoved(it.fromPosition, it.toPosition)
-                }
-            }
+            ItemSwipesDefaultObserver.notifyItemsChanges(it, boardsAdapter)
         })
 
         // Observe UI states.

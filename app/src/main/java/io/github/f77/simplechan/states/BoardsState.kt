@@ -1,4 +1,6 @@
 package io.github.f77.simplechan.states
 
-abstract class BoardsState {
+import io.github.f77.simplechan.bloc_utils.state.StateInterface
+
+abstract class BoardsState : StateInterface {
 }

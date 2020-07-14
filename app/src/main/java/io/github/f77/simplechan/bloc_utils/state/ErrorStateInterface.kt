@@ -1,5 +1,5 @@
 package io.github.f77.simplechan.bloc_utils.state
 
-interface ErrorStateInterface {
+interface ErrorStateInterface : StateInterface {
     val exception: Throwable
 }

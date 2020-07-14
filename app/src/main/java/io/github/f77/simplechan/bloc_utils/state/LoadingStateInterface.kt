@@ -1,4 +1,4 @@
 package io.github.f77.simplechan.bloc_utils.state
 
-interface LoadingStateInterface {
+interface LoadingStateInterface : StateInterface {
 }

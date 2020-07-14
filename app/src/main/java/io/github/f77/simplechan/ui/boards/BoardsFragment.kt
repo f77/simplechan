@@ -20,6 +20,7 @@ import io.github.f77.simplechan.bloc_utils.action.ItemRemovedActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
 import io.github.f77.simplechan.states.BoardsSuccessState
+import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 
 
 class BoardsFragment : Fragment() {

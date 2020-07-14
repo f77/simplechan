@@ -1,11 +1,13 @@
-package io.github.f77.simplechan.ui.boards
+package io.github.f77.simplechan.swipes_decoration_utils
 
 import android.graphics.Canvas
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
-
+/**
+ * @see <a href="https://github.com/xabaras/RecyclerViewSwipeDecorator">RecyclerViewSwipeDecorator</a>
+ */
 class ItemSwipeTouchCallback(private val swipesHandler: ItemSwipeAwareInterface) : ItemTouchHelper.Callback() {
     var leftLabel: String? = null
     var rightLabel: String? = null

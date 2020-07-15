@@ -11,11 +11,13 @@ import androidx.annotation.AttrRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.f77.simplechan.R
+import io.github.f77.simplechan.bloc_utils.action.interfaces.NavigateActionInterface
 import io.github.f77.simplechan.bloc_utils.action.interfaces.SimpleSnackBarActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
@@ -62,12 +64,18 @@ class BoardsFragment : Fragment() {
 
         // Observe actions.
         boardsViewModel.actions.observe(viewLifecycleOwner, Observer {
-            // Handle swipes and moves.
+            // Handle RecyclerView swipes and moves.
             ItemSwipesDefaultObserver.notifyItemsChanges(it, boardsAdapter)
 
             when (it) {
                 is SimpleSnackBarActionInterface -> {
                     Snackbar.make(root, it.message, Snackbar.LENGTH_LONG).show()
+                }
+                is NavigateActionInterface -> {
+                    // Open threads fragment.
+                    val action = BoardsFragmentDirections.actionNavBoardsToNavThreads()
+                    boardsRecyclerView.findViewHolderForAdapterPosition(it.fromPosition)?.itemView
+                        ?.findNavController()?.navigate(action)
                 }
             }
         })

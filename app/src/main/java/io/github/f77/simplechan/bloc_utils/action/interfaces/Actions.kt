@@ -31,6 +31,16 @@ class Actions {
             }
         }
 
+        fun navigate(fromPosition: Int, toPosition: Int): NavigateActionInterface {
+            return object :
+                NavigateActionInterface {
+                override val fromPosition: Int
+                    get() = fromPosition
+                override val toPosition: Int
+                    get() = toPosition
+            }
+        }
+
         fun simpleSnackBar(message: String): SimpleSnackBarActionInterface {
             return object :
                 SimpleSnackBarActionInterface {

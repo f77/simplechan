@@ -27,13 +27,21 @@ class BoardsViewModel : BlocViewModel() {
     }
 
     /**
+     * Log all events.
+     */
+    override suspend fun onEvent(event: EventInterface) {
+        super.onEvent(event)
+        println("EVENT_FIRED: " + event::class)
+    }
+
+    /**
      * Actions are like events, but directed from viewModel to UI.
      * For example, navigation events, SnackBar, dialog, etc.
      */
     override fun mapEventToAction(event: EventInterface): Flow<ActionInterface> = flow {
         when (event) {
             is ItemClickedEventInterface -> {
-                emit(Actions.simpleSnackBar("CLICKED ON " + event.position))
+                emit(Actions.navigate(event.position, 0))
             }
             is ItemLongClickedEventInterface -> {
                 emit(Actions.simpleSnackBar("LONG CLICKED ON " + event.position))

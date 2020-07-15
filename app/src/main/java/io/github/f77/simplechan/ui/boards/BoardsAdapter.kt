@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.bloc_utils.EventsAwareInterface

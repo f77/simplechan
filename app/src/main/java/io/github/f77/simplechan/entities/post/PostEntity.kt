@@ -16,12 +16,9 @@ class PostEntity(
     var likes: Int? = null
     var dislikes: Int? = null
 
-    val flags: PostFlags =
-        PostFlags()
-    val names: PostNames =
-        PostNames()
+    val flags: PostFlags = PostFlags()
+    val names: PostNames = PostNames()
     val tags: MutableList<String> = mutableListOf()
     val attachments: MutableList<AttachmentEntityInterface> = mutableListOf()
-    // icon
-    // attachments
+    // icons
 }

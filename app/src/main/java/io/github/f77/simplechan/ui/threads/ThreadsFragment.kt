@@ -1,4 +1,4 @@
-package io.github.f77.simplechan.ui.slideshow
+package io.github.f77.simplechan.ui.threads
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,20 +10,20 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import io.github.f77.simplechan.R
 
-class SlideshowFragment : Fragment() {
+class ThreadsFragment : Fragment() {
 
-    private lateinit var slideshowViewModel: SlideshowViewModel
+    private lateinit var threadsViewModel: ThreadsViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        slideshowViewModel =
-            ViewModelProviders.of(this).get(SlideshowViewModel::class.java)
-        val root = inflater.inflate(R.layout.fragment_slideshow, container, false)
-        val textView: TextView = root.findViewById(R.id.text_slideshow)
-        slideshowViewModel.text.observe(viewLifecycleOwner, Observer {
+        threadsViewModel =
+            ViewModelProviders.of(this).get(ThreadsViewModel::class.java)
+        val root = inflater.inflate(R.layout.fragment_threads, container, false)
+        val textView: TextView = root.findViewById(R.id.text_threads)
+        threadsViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
         return root

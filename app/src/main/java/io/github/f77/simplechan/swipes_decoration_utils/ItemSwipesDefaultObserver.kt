@@ -1,10 +1,10 @@
 package io.github.f77.simplechan.swipes_decoration_utils
 
 import androidx.recyclerview.widget.RecyclerView
-import io.github.f77.simplechan.bloc_utils.action.ActionInterface
-import io.github.f77.simplechan.bloc_utils.action.ItemChangedActionInterface
-import io.github.f77.simplechan.bloc_utils.action.ItemMovedActionInterface
-import io.github.f77.simplechan.bloc_utils.action.ItemRemovedActionInterface
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ItemChangedActionInterface
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ItemMovedActionInterface
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ItemRemovedActionInterface
 
 class ItemSwipesDefaultObserver {
     companion object {

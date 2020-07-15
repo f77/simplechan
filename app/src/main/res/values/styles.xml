@@ -5,7 +5,10 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorBackground">@color/colorMyBackground</item>
+
+        <item name="colorSwipeLabel">@color/colorSwipeLabel</item>
+        <item name="colorBackgroundSwipeDeleteItem">@color/colorBackgroundSwipeDeleteItem</item>
+        <item name="colorBackgroundSwipeEditItem">@color/colorBackgroundSwipeEditItem</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

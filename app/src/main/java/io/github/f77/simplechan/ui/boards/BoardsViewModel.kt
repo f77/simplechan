@@ -1,8 +1,8 @@
 package io.github.f77.simplechan.ui.boards
 
 import io.github.f77.simplechan.bloc_utils.BlocViewModel
-import io.github.f77.simplechan.bloc_utils.action.ActionInterface
-import io.github.f77.simplechan.bloc_utils.action.Actions
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
+import io.github.f77.simplechan.bloc_utils.action.interfaces.Actions
 import io.github.f77.simplechan.bloc_utils.event.*
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import io.github.f77.simplechan.bloc_utils.state.States
@@ -10,13 +10,11 @@ import io.github.f77.simplechan.entities.BoardEntity
 import io.github.f77.simplechan.repositories.DvachRepository
 import io.github.f77.simplechan.repositories.ImageboardRepositoryInterface
 import io.github.f77.simplechan.states.BoardsSuccessState
-import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeBlocViewModelResolverInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.*
 
-class BoardsViewModel : BlocViewModel(),
-    ItemSwipeBlocViewModelResolverInterface {
+class BoardsViewModel : BlocViewModel() {
     private val _imageboardRepository: ImageboardRepositoryInterface = DvachRepository()
 
     // Data source. Model just controls data, but not keep them.
@@ -34,6 +32,12 @@ class BoardsViewModel : BlocViewModel(),
      */
     override fun mapEventToAction(event: EventInterface): Flow<ActionInterface> = flow {
         when (event) {
+            is ItemClickedEventInterface -> {
+                emit(Actions.simpleSnackBar("CLICKED ON " + event.position))
+            }
+            is ItemLongClickedEventInterface -> {
+                emit(Actions.simpleSnackBar("LONG CLICKED ON " + event.position))
+            }
             is ItemSwipedLeftEventInterface -> {
                 _boards.removeAt(event.position)
 

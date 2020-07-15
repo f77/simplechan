@@ -3,7 +3,8 @@ package io.github.f77.simplechan.bloc_utils
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.f77.simplechan.bloc_utils.action.ActionInterface
+import io.github.f77.simplechan.bloc_utils.action.ActionsLiveData
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
 import io.github.f77.simplechan.bloc_utils.event.EventInterface
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import kotlinx.coroutines.CoroutineDispatcher
@@ -14,7 +15,7 @@ import kotlinx.coroutines.launch
 abstract class BlocViewModel : ViewModel(), BlocViewModelInterface {
     private val _dispatcher: CoroutineDispatcher = Dispatchers.IO
     override val state: MutableLiveData<StateInterface> = MutableLiveData()
-    override val actions: MutableLiveData<ActionInterface> = MutableLiveData()
+    override val actions: ActionsLiveData<ActionInterface> = ActionsLiveData()
 
     /**
      * Directly handling all incoming events.

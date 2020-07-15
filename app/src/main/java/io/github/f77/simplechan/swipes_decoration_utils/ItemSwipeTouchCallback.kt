@@ -3,12 +3,16 @@ package io.github.f77.simplechan.swipes_decoration_utils
 import android.graphics.Canvas
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import io.github.f77.simplechan.bloc_utils.EventsAwareInterface
+import io.github.f77.simplechan.bloc_utils.event.ItemMovedEventInterface
+import io.github.f77.simplechan.bloc_utils.event.ItemSwipedLeftEventInterface
+import io.github.f77.simplechan.bloc_utils.event.ItemSwipedRightEventInterface
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 /**
  * @see <a href="https://github.com/xabaras/RecyclerViewSwipeDecorator">RecyclerViewSwipeDecorator</a>
  */
-class ItemSwipeTouchCallback(private val swipesHandler: ItemSwipeAwareInterface) : ItemTouchHelper.Callback() {
+class ItemSwipeTouchCallback(private val eventsHandler: EventsAwareInterface) : ItemTouchHelper.Callback() {
     var leftLabel: String? = null
     var rightLabel: String? = null
     var leftLabelColor: Int? = null
@@ -32,15 +36,26 @@ class ItemSwipeTouchCallback(private val swipesHandler: ItemSwipeAwareInterface)
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
-        swipesHandler.onItemMoved(viewHolder.adapterPosition, target.adapterPosition)
+        eventsHandler.addEvent(object : ItemMovedEventInterface {
+            override val fromPosition: Int
+                get() = viewHolder.adapterPosition
+            override val toPosition: Int
+                get() = target.adapterPosition
+        })
         return true
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         if (direction == ItemTouchHelper.START) {
-            swipesHandler.onItemSwipedLeft(viewHolder.adapterPosition)
+            eventsHandler.addEvent(object : ItemSwipedLeftEventInterface {
+                override val position: Int
+                    get() = viewHolder.adapterPosition
+            })
         } else {
-            swipesHandler.onItemSwipedRight(viewHolder.adapterPosition)
+            eventsHandler.addEvent(object : ItemSwipedRightEventInterface {
+                override val position: Int
+                    get() = viewHolder.adapterPosition
+            })
         }
     }
 

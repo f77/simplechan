@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorBackgroundSwipeDeleteItem" format="color|reference" />
+    <attr name="colorBackgroundSwipeEditItem" format="color|reference" />
+    <attr name="colorSwipeLabel" format="color|reference" />
+</resources>

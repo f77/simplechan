@@ -4,6 +4,20 @@ class Events {
     companion object {
         fun initialized(): InitializedEventInterface = object : InitializedEventInterface {}
 
+        fun itemClicked(position: Int): ItemClickedEventInterface {
+            return object : ItemClickedEventInterface {
+                override val position: Int
+                    get() = position
+            }
+        }
+
+        fun itemLongClicked(position: Int): ItemLongClickedEventInterface {
+            return object : ItemLongClickedEventInterface {
+                override val position: Int
+                    get() = position
+            }
+        }
+
         fun itemMoved(fromPosition: Int, toPosition: Int): ItemMovedEventInterface {
             return object : ItemMovedEventInterface {
                 override val fromPosition: Int

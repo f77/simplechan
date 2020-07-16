@@ -1,13 +1,36 @@
 package io.github.f77.simplechan.ui.threads
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import io.github.f77.simplechan.bloc_utils.BlocViewModel
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
+import io.github.f77.simplechan.bloc_utils.event.EventInterface
+import io.github.f77.simplechan.bloc_utils.event.Events
+import io.github.f77.simplechan.bloc_utils.event.InitializedEventInterface
+import io.github.f77.simplechan.bloc_utils.state.StateInterface
+import io.github.f77.simplechan.events.threads.ThreadsBoardGivenEvent
+import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
-class ThreadsViewModel : ViewModel() {
+class ThreadsViewModel : BlocViewModel() {
+    private val _textData: String = "placeholder data"
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is threads Fragment"
+    init {
+        // Add initial starting event.
+        addEvent(Events.initialized())
     }
-    val text: LiveData<String> = _text
+
+    override fun mapEventToAction(event: EventInterface): Flow<ActionInterface> = flow {
+
+    }
+
+    override fun mapEventToState(event: EventInterface): Flow<StateInterface> = flow {
+        when (event) {
+            is InitializedEventInterface -> {
+                println("THREADS INITIALIZED!")
+            }
+            is ThreadsBoardGivenEvent -> {
+                emit(ThreadsSuccessfulState(event.board))
+            }
+        }
+    }
 }

@@ -8,25 +8,30 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.annotation.AttrRes
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.f77.simplechan.R
+import io.github.f77.simplechan.bloc_utils.BlocFragment
+import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
 import io.github.f77.simplechan.bloc_utils.action.interfaces.NavigateActionInterface
 import io.github.f77.simplechan.bloc_utils.action.interfaces.SimpleSnackBarActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
-import io.github.f77.simplechan.states.BoardsSuccessState
+import io.github.f77.simplechan.bloc_utils.state.StateInterface
+import io.github.f77.simplechan.states.boards.BoardsSuccessState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipesDefaultObserver
 
-class BoardsFragment : Fragment() {
-    private lateinit var boardsViewModel: BoardsViewModel
+class BoardsFragment : BlocFragment() {
+    override val viewModel: BoardsViewModel by activityViewModels()
+    private val selectedBoardModel: SelectedBoardViewModel by activityViewModels()
+
+    private lateinit var progressBarView: ProgressBar
     private lateinit var boardsRecyclerView: RecyclerView
     private lateinit var boardsAdapter: BoardsAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
@@ -36,16 +41,20 @@ class BoardsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        boardsViewModel = ViewModelProviders.of(this).get(BoardsViewModel::class.java)
-
-        // Find views
-        val root = inflater.inflate(R.layout.fragment_boards, container, false)
-        val progressBar = root.findViewById<ProgressBar>(R.id.progressBar)
-
         viewManager = LinearLayoutManager(requireContext())
-        boardsAdapter = BoardsAdapter(boardsViewModel)
+        return inflater.inflate(R.layout.fragment_boards, container, false)
+    }
 
-        boardsRecyclerView = root.findViewById<RecyclerView>(R.id.my_recycler_view).apply {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Init views and vars
+        progressBarView = view.findViewById<ProgressBar>(R.id.progressBar)
+        boardsRecyclerView = view.findViewById<RecyclerView>(R.id.my_recycler_view)
+        boardsAdapter = BoardsAdapter(viewModel)
+
+        // Configure RecyclerView
+        boardsRecyclerView.apply {
             // use this setting to improve performance if you know that changes
             // in content do not change the layout size of the RecyclerView
             setHasFixedSize(true)
@@ -57,54 +66,56 @@ class BoardsFragment : Fragment() {
             adapter = boardsAdapter
 
             // Add control of the swipes and move.
-            val touchCallback =
-                decorateItemSwipeTouchCallback(requireContext(), ItemSwipeTouchCallback(boardsViewModel))
+            val touchCallback = decorateItemSwipeTouchCallback(
+                requireContext(),
+                ItemSwipeTouchCallback(viewModel)
+            )
             ItemTouchHelper(touchCallback).attachToRecyclerView(this)
         }
+    }
 
-        // Observe actions.
-        boardsViewModel.actions.observe(viewLifecycleOwner, Observer {
-            // Handle RecyclerView swipes and moves.
-            ItemSwipesDefaultObserver.notifyItemsChanges(it, boardsAdapter)
 
-            when (it) {
-                is SimpleSnackBarActionInterface -> {
-                    Snackbar.make(root, it.message, Snackbar.LENGTH_LONG).show()
-                }
-                is NavigateActionInterface -> {
-                    // Open threads fragment.
-                    val action = BoardsFragmentDirections.actionNavBoardsToNavThreads()
-                    boardsRecyclerView.findViewHolderForAdapterPosition(it.fromPosition)?.itemView
-                        ?.findNavController()?.navigate(action)
-                }
+    override fun observeActions(): Observer<ActionInterface> = Observer {
+        // Handle RecyclerView swipes and moves.
+        ItemSwipesDefaultObserver.notifyItemsChanges(it, boardsAdapter)
+
+        when (it) {
+            is SimpleSnackBarActionInterface -> {
+                Snackbar.make(rootView, it.message, Snackbar.LENGTH_LONG).show()
             }
-        })
+            is NavigateActionInterface -> {
+                // Pass data to new fragment.
+                selectedBoardModel.putData(boardsAdapter.dataset[it.fromPosition])
 
-        // Observe UI states.
-        boardsViewModel.state.observe(viewLifecycleOwner, Observer {
-            when (it) {
-                is LoadingStateInterface -> {
-                    println("BOARDS LOADING STATE")
-                    progressBar.visibility = View.VISIBLE
-                }
-                is ErrorStateInterface -> {
-                    println("BOARDS ERROR STATE")
-                    progressBar.visibility = View.INVISIBLE
-                    it.exception.printStackTrace()
-                    Snackbar.make(root, it.exception::class.java.name + "!", Snackbar.LENGTH_LONG).show()
-                }
-                is BoardsSuccessState -> {
-                    println("BOARDS DATA SUCCESSFULLY RECEIVED!")
-                    progressBar.visibility = View.INVISIBLE
-
-                    // Directly copy link to the dataset from the model.
-                    boardsAdapter.dataset = it.boards
-                    boardsAdapter.notifyDataSetChanged()
-                }
+                // Open threads fragment.
+                val action = BoardsFragmentDirections.actionNavBoardsToNavThreads()
+                boardsRecyclerView.findViewHolderForAdapterPosition(it.fromPosition)?.itemView
+                    ?.findNavController()?.navigate(action)
             }
-        })
+        }
+    }
 
-        return root
+    override fun observeStates(): Observer<StateInterface> = Observer {
+        when (it) {
+            is LoadingStateInterface -> {
+                println("BOARDS LOADING STATE")
+                progressBarView.visibility = View.VISIBLE
+            }
+            is ErrorStateInterface -> {
+                println("BOARDS ERROR STATE")
+                progressBarView.visibility = View.INVISIBLE
+                it.exception.printStackTrace()
+                Snackbar.make(rootView, it.exception::class.java.name + "!", Snackbar.LENGTH_LONG).show()
+            }
+            is BoardsSuccessState -> {
+                println("BOARDS DATA SUCCESSFULLY RECEIVED!")
+                progressBarView.visibility = View.INVISIBLE
+
+                // Directly copy link to the dataset from the model.
+                boardsAdapter.dataset = it.boards
+                boardsAdapter.notifyDataSetChanged()
+            }
+        }
     }
 
     private fun decorateItemSwipeTouchCallback(

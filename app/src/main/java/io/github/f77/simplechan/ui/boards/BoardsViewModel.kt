@@ -9,7 +9,7 @@ import io.github.f77.simplechan.bloc_utils.state.States
 import io.github.f77.simplechan.entities.BoardEntity
 import io.github.f77.simplechan.repositories.DvachRepository
 import io.github.f77.simplechan.repositories.ImageboardRepositoryInterface
-import io.github.f77.simplechan.states.BoardsSuccessState
+import io.github.f77.simplechan.states.boards.BoardsSuccessState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.*
@@ -23,7 +23,7 @@ class BoardsViewModel : BlocViewModel() {
 
     init {
         // Add initial starting event.
-        addEvent(object : InitializedEventInterface {})
+        addEvent(Events.initialized())
     }
 
     /**

@@ -13,7 +13,13 @@ import androidx.lifecycle.Observer
 class ActionsLiveData<T> {
     private val _data: MutableLiveData<ActionWrapper<T>> = MutableLiveData()
 
-    fun postValue(value: T) = _data.postValue(ActionWrapper(value))
+    fun setValue(value: T) {
+        // Directly post value on the main thread!
+        // "If you called method "LiveData.postValue()" multiple times before a main thread executed a posted task,
+        // only the last value would be dispatched."
+        // @see https://developer.android.com/reference/android/arch/lifecycle/LiveData.html#postValue(T)
+        _data.value = ActionWrapper(value)
+    }
 
     fun observe(owner: LifecycleOwner, observer: Observer<in T>) {
         _data.observe(owner, makeObserver(observer))

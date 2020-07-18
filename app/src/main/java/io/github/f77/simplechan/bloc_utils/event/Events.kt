@@ -40,5 +40,12 @@ class Events {
                     get() = position
             }
         }
+
+        fun simpleSnackBar(message: String): SimpleSnackBarEventInterface {
+            return object : SimpleSnackBarEventInterface {
+                override val message: String
+                    get() = message
+            }
+        }
     }
 }

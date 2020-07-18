@@ -1,29 +1,39 @@
 package io.github.f77.simplechan.swipes_decoration_utils
 
+import android.content.Context
 import android.graphics.Canvas
+import android.util.TypedValue
+import androidx.annotation.AttrRes
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import io.github.f77.simplechan.bloc_utils.EventsAwareInterface
-import io.github.f77.simplechan.bloc_utils.event.ItemMovedEventInterface
-import io.github.f77.simplechan.bloc_utils.event.ItemSwipedLeftEventInterface
-import io.github.f77.simplechan.bloc_utils.event.ItemSwipedRightEventInterface
+import io.github.f77.simplechan.bloc_utils.HasEventsHandler
+import io.github.f77.simplechan.bloc_utils.event.Events
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 /**
  * @see <a href="https://github.com/xabaras/RecyclerViewSwipeDecorator">RecyclerViewSwipeDecorator</a>
  */
-class ItemSwipeTouchCallback(private val eventsHandler: EventsAwareInterface) : ItemTouchHelper.Callback() {
-    var leftLabel: String? = null
-    var rightLabel: String? = null
-    var leftLabelColor: Int? = null
-    var rightLabelColor: Int? = null
-    var leftBackgroundColor: Int? = null
-    var rightBackgroundColor: Int? = null
-    var leftIcon: Int? = null
-    var rightIcon: Int? = null
+class ItemSwipeTouchCallback(override val eventsHandler: EventsAwareInterface) : ItemTouchHelper.Callback(),
+    HasEventsHandler {
 
+    var leftSwipeConfig: SwipeConfig? = null
+    var rightSwipeConfig: SwipeConfig? = null
     var isLongPressDrag: Boolean = true
     var isItemViewSwipe: Boolean = true
+
+    open class SwipeConfig {
+        open var label: String? = null
+        open var labelColor: Int? = null
+        open var backgroundColor: Int? = null
+        open var icon: Int? = null
+
+        open fun resolveColorFromAttr(context: Context, @AttrRes attr: Int): Int {
+            val color = TypedValue()
+            context.theme.resolveAttribute(attr, color, true)
+            return color.data
+        }
+    }
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
         val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
@@ -36,26 +46,15 @@ class ItemSwipeTouchCallback(private val eventsHandler: EventsAwareInterface) : 
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
-        eventsHandler.addEvent(object : ItemMovedEventInterface {
-            override val fromPosition: Int
-                get() = viewHolder.adapterPosition
-            override val toPosition: Int
-                get() = target.adapterPosition
-        })
+        eventsHandler.addEvent(Events.itemMoved(viewHolder.adapterPosition, target.adapterPosition))
         return true
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         if (direction == ItemTouchHelper.START) {
-            eventsHandler.addEvent(object : ItemSwipedLeftEventInterface {
-                override val position: Int
-                    get() = viewHolder.adapterPosition
-            })
+            eventsHandler.addEvent(Events.itemSwipedLeft(viewHolder.adapterPosition))
         } else {
-            eventsHandler.addEvent(object : ItemSwipedRightEventInterface {
-                override val position: Int
-                    get() = viewHolder.adapterPosition
-            })
+            eventsHandler.addEvent(Events.itemSwipedRight(viewHolder.adapterPosition))
         }
     }
 
@@ -71,14 +70,15 @@ class ItemSwipeTouchCallback(private val eventsHandler: EventsAwareInterface) : 
         val builder = RecyclerViewSwipeDecorator
             .Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
 
-        leftLabel?.let { builder.addSwipeLeftLabel(leftLabel!!) }
-        rightLabel?.let { builder.addSwipeRightLabel(rightLabel!!) }
-        leftLabelColor?.let { builder.setSwipeLeftLabelColor(leftLabelColor!!) }
-        rightLabelColor?.let { builder.setSwipeRightLabelColor(rightLabelColor!!) }
-        leftBackgroundColor?.let { builder.addSwipeLeftBackgroundColor(leftBackgroundColor!!) }
-        rightBackgroundColor?.let { builder.addSwipeRightBackgroundColor(rightBackgroundColor!!) }
-        leftIcon?.let { builder.addSwipeLeftActionIcon(leftIcon!!) }
-        rightIcon?.let { builder.addSwipeRightActionIcon(rightIcon!!) }
+        leftSwipeConfig?.label?.let { builder.addSwipeLeftLabel(it) }
+        leftSwipeConfig?.labelColor?.let { builder.setSwipeLeftLabelColor(it) }
+        leftSwipeConfig?.backgroundColor?.let { builder.addSwipeLeftBackgroundColor(it) }
+        leftSwipeConfig?.icon?.let { builder.addSwipeLeftActionIcon(it) }
+
+        rightSwipeConfig?.label?.let { builder.addSwipeRightLabel(it) }
+        rightSwipeConfig?.labelColor?.let { builder.setSwipeRightLabelColor(it) }
+        rightSwipeConfig?.backgroundColor?.let { builder.addSwipeRightBackgroundColor(it) }
+        rightSwipeConfig?.icon?.let { builder.addSwipeRightActionIcon(it) }
 
         builder.create().decorate()
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)

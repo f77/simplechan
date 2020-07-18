@@ -10,10 +10,11 @@ import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 abstract class BlocViewModel : ViewModel(), BlocViewModelInterface {
-    private val _dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val _dispatcher: CoroutineDispatcher = Dispatchers.Default
     override val state: MutableLiveData<StateInterface> = MutableLiveData()
     override val actions: ActionsLiveData<ActionInterface> = ActionsLiveData()
 
@@ -33,12 +34,18 @@ abstract class BlocViewModel : ViewModel(), BlocViewModelInterface {
             onEvent(event)
 
             // Handle actions.
-            mapEventToAction(event).collect {
-                actions.postValue(it)
+            mapEventToAction(event).flowOn(_dispatcher).collect {
+                // Launch in the main thread to receive ALL values.
+                // @see https://stackoverflow.com/a/55381715/10452175
+                launch(Dispatchers.Main) {
+                    actions.setValue(it)
+                }
             }
 
             // Handle states.
-            mapEventToState(event).collect {
+            mapEventToState(event).flowOn(_dispatcher).collect {
+                // But we don't need to get exactly ALL UI states and can afford to get only last one,
+                // so, we can use LiveData.postValue().
                 state.postValue(it)
             }
         }

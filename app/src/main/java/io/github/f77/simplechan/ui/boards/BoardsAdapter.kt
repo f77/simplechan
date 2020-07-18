@@ -4,15 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.bloc_utils.EventsAwareInterface
+import io.github.f77.simplechan.bloc_utils.HasEventsHandler
 import io.github.f77.simplechan.bloc_utils.event.Events
 import io.github.f77.simplechan.entities.BoardEntity
 
-class BoardsAdapter(private val eventsHandler: EventsAwareInterface) :
-    RecyclerView.Adapter<BoardsAdapter.BoardsViewHolder>() {
+class BoardsAdapter(override val eventsHandler: EventsAwareInterface) :
+    RecyclerView.Adapter<BoardsAdapter.BoardsViewHolder>(), HasEventsHandler {
     var dataset: List<BoardEntity> = mutableListOf()
 
     // Provide a reference to the views for each data item
@@ -20,8 +20,8 @@ class BoardsAdapter(private val eventsHandler: EventsAwareInterface) :
     // you provide access to all the views for a data item in a view holder.
     // Each data item is just a string in this case that is shown in a TextView.
     class BoardsViewHolder(itemView: View, eventsHandler: EventsAwareInterface) : RecyclerView.ViewHolder(itemView) {
-        var textViewTitle: TextView = itemView.findViewById(R.id.recycler_item_title);
-        var textViewSubtitle: TextView = itemView.findViewById(R.id.recycler_item_subtitle);
+        var textViewBoardName: TextView = itemView.findViewById(R.id.boardName);
+        var textViewBoardId: TextView = itemView.findViewById(R.id.boardId);
 
         init {
             itemView.setOnClickListener(View.OnClickListener {
@@ -42,7 +42,7 @@ class BoardsAdapter(private val eventsHandler: EventsAwareInterface) :
     ): BoardsViewHolder {
         // create a new view
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.recyclerview_row, parent, false)
+            .inflate(R.layout.list_item_board, parent, false)
         // set the view's size, margins, paddings and layout parameters
         // ...
         return BoardsViewHolder(view, eventsHandler)
@@ -54,8 +54,8 @@ class BoardsAdapter(private val eventsHandler: EventsAwareInterface) :
         // - replace the contents of the view with that element
         val board = dataset[position]
 
-        holder.textViewTitle.text = board.name
-        holder.textViewSubtitle.text = "/" + board.id
+        holder.textViewBoardName.text = board.name
+        holder.textViewBoardId.text = "/" + board.id
     }
 
     // Return the size of your dataset (invoked by the layout manager)

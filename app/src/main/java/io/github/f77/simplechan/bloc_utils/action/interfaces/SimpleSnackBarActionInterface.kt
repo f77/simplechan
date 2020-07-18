@@ -1,6 +1,6 @@
 package io.github.f77.simplechan.bloc_utils.action.interfaces
 
-interface SimpleSnackBarActionInterface :
-    ActionInterface {
-    val message: String
+import io.github.f77.simplechan.bloc_utils.interfaces.HasMessageInterface
+
+interface SimpleSnackBarActionInterface : ActionInterface, HasMessageInterface {
 }

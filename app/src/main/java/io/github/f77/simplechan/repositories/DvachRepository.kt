@@ -2,6 +2,8 @@ package io.github.f77.simplechan.repositories
 
 import io.github.f77.simplechan.entities.BoardEntity
 import io.github.f77.simplechan.entities.ThreadEntity
+import io.github.f77.simplechan.entities.attachment.AttachmentEntityInterface
+import io.github.f77.simplechan.entities.attachment.ImageAttachment
 import io.github.f77.simplechan.entities.post.PostEntity
 import okhttp3.Request
 import org.json.JSONArray
@@ -27,7 +29,7 @@ class DvachRepository : AbstractRepository() {
 
         val result: MutableList<ThreadEntity> = mutableListOf()
         for (i in pages.indices) {
-            val subResult = loadSingleThreadsPage(board, i)
+            val subResult = loadSingleThreadsPage(board, pages[i])
             result.addAll(subResult)
         }
 
@@ -35,8 +37,13 @@ class DvachRepository : AbstractRepository() {
     }
 
     private fun loadSingleThreadsPage(board: BoardEntity, pageNumber: Int): List<ThreadEntity> {
+        var url: String = "$schema$domain/" + board.id + "/" + pageNumber + ".json"
+        if (pageNumber == 1) {
+            url = "$schema$domain/" + board.id + "/index.json"
+        }
+
         val request = Request.Builder()
-            .url("$schema$domain/" + board.id + "/" + pageNumber + ".json")
+            .url(url)
             .build()
 
         val response = httpClient.newCall(request).execute()
@@ -50,7 +57,7 @@ class DvachRepository : AbstractRepository() {
         val threadsArray = json.getJSONArray("threads")
 
         for (i in 0 until threadsArray.length()) {
-            val threadObject: JSONObject = threadsArray.get(i) as JSONObject
+            val threadObject = threadsArray.getJSONObject(i)
 
             val allPosts = parsePosts(threadObject.getJSONArray("posts"))
             val opPostEntity = allPosts[0]
@@ -59,8 +66,11 @@ class DvachRepository : AbstractRepository() {
                 threadObject.getString("thread_num"),
                 board,
                 opPostEntity,
-                allPosts.subList(1, allPosts.size - 1)
-            )
+                if (allPosts.size > 1) allPosts.subList(1, allPosts.size - 1) else listOf()
+            ).apply {
+                totalPostsCount = threadObject.opt("posts_count") as Int?
+                totalFilesCount = threadObject.opt("files_count") as Int?
+            }
             resultList.add(threadEntity)
         }
 
@@ -70,13 +80,28 @@ class DvachRepository : AbstractRepository() {
     private fun parsePosts(postsArray: JSONArray): List<PostEntity> {
         val resultList: MutableList<PostEntity> = mutableListOf()
         for (i in 0 until postsArray.length()) {
-            val postObject: JSONObject = postsArray.get(i) as JSONObject
+            val postObject = postsArray.getJSONObject(i)
             val postEntity = PostEntity(postObject.getString("num")).apply {
-                timestamp = postObject.getInt("timestamp")
-                comment = postObject.getString("comment")
+                timestamp = postObject.opt("timestamp") as Int?
+                comment = postObject.opt("comment") as String?
+                attachments.addAll(parseFiles(postObject.getJSONArray("files")))
             }
 
             resultList.add(postEntity)
+        }
+
+        return resultList
+    }
+
+    private fun parseFiles(filesArray: JSONArray): List<AttachmentEntityInterface> {
+        val resultList: MutableList<AttachmentEntityInterface> = mutableListOf()
+        for (i in 0 until filesArray.length()) {
+            val fileObject = filesArray.getJSONObject(i)
+
+            val image = ImageAttachment(schema + domain + fileObject.getString("path")).apply {
+                thumbnail = schema + domain + fileObject.opt("thumbnail") as String?
+            }
+            resultList.add(image)
         }
 
         return resultList
@@ -94,8 +119,8 @@ class DvachRepository : AbstractRepository() {
 
             val boardEntity = BoardEntity(boardObject.getString("id"))
                 .apply {
-                    name = boardObject.getString("name")
-                    categoryName = boardObject.getString("category")
+                    name = boardObject.opt("name") as String?
+                    categoryName = boardObject.opt("category") as String?
                 }
             resultList.add(boardEntity)
         }

@@ -2,15 +2,14 @@ package io.github.f77.simplechan.ui.boards
 
 import android.content.Context
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
-import androidx.annotation.AttrRes
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,13 +18,15 @@ import io.github.f77.simplechan.R
 import io.github.f77.simplechan.bloc_utils.BlocFragment
 import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
 import io.github.f77.simplechan.bloc_utils.action.interfaces.NavigateActionInterface
-import io.github.f77.simplechan.bloc_utils.action.interfaces.SimpleSnackBarActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import io.github.f77.simplechan.states.boards.BoardsSuccessState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipesDefaultObserver
+import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
+import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
+
 
 class BoardsFragment : BlocFragment() {
     override val viewModel: BoardsViewModel by activityViewModels()
@@ -50,7 +51,7 @@ class BoardsFragment : BlocFragment() {
 
         // Init views and vars
         progressBarView = view.findViewById<ProgressBar>(R.id.progressBar)
-        boardsRecyclerView = view.findViewById<RecyclerView>(R.id.my_recycler_view)
+        boardsRecyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_boards)
         boardsAdapter = BoardsAdapter(viewModel)
 
         // Configure RecyclerView
@@ -71,6 +72,14 @@ class BoardsFragment : BlocFragment() {
                 ItemSwipeTouchCallback(viewModel)
             )
             ItemTouchHelper(touchCallback).attachToRecyclerView(this)
+
+            // Add line separators.
+            boardsRecyclerView.addItemDecoration(
+                DividerItemDecoration(
+                    boardsRecyclerView.context,
+                    DividerItemDecoration.VERTICAL
+                )
+            )
         }
     }
 
@@ -80,9 +89,6 @@ class BoardsFragment : BlocFragment() {
         ItemSwipesDefaultObserver.notifyItemsChanges(it, boardsAdapter)
 
         when (it) {
-            is SimpleSnackBarActionInterface -> {
-                Snackbar.make(rootView, it.message, Snackbar.LENGTH_LONG).show()
-            }
             is NavigateActionInterface -> {
                 // Pass data to new fragment.
                 selectedBoardModel.putData(boardsAdapter.dataset[it.fromPosition])
@@ -105,7 +111,7 @@ class BoardsFragment : BlocFragment() {
                 println("BOARDS ERROR STATE")
                 progressBarView.visibility = View.INVISIBLE
                 it.exception.printStackTrace()
-                Snackbar.make(rootView, it.exception::class.java.name + "!", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(rootView, it.exception.message.toString(), Snackbar.LENGTH_LONG).show()
             }
             is BoardsSuccessState -> {
                 println("BOARDS DATA SUCCESSFULLY RECEIVED!")
@@ -125,20 +131,8 @@ class BoardsFragment : BlocFragment() {
         return callback.apply {
             isItemViewSwipe = true
             isLongPressDrag = false
-            leftLabel = "DELETE"
-            rightLabel = "EDIT"
-            leftLabelColor = resolveColorFromAttr(context, R.attr.colorSwipeLabel)
-            rightLabelColor = resolveColorFromAttr(context, R.attr.colorSwipeLabel)
-            leftBackgroundColor = resolveColorFromAttr(context, R.attr.colorBackgroundSwipeDeleteItem)
-            rightBackgroundColor = resolveColorFromAttr(context, R.attr.colorBackgroundSwipeEditItem)
-            leftIcon = android.R.drawable.ic_menu_delete
-            rightIcon = android.R.drawable.ic_menu_edit
+            leftSwipeConfig = DeleteSwipeConfig(context)
+            rightSwipeConfig = EditSwipeConfig(context)
         }
-    }
-
-    private fun resolveColorFromAttr(context: Context, @AttrRes attr: Int): Int {
-        val color = TypedValue()
-        context.theme.resolveAttribute(attr, color, true)
-        return color.data
     }
 }

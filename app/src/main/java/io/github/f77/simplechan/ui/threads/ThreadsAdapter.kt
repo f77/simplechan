@@ -5,21 +5,32 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
-import com.bumptech.glide.Glide
+import com.bumptech.glide.ListPreloader
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.RequestManager
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.bloc_utils.EventsAwareInterface
 import io.github.f77.simplechan.bloc_utils.event.Events
 import io.github.f77.simplechan.entities.ThreadEntity
+import io.github.f77.simplechan.entities.attachment.AttachmentEntityInterface
 import io.github.f77.simplechan.entities.attachment.ImageAttachment
 import io.github.f77.simplechan.events.threads.ThreadInformationClickedEvent
+import io.github.f77.simplechan.ui.interfaces.HasGlideRequestManager
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
-    RecyclerView.Adapter<ThreadsAdapter.ThreadsViewHolder>() {
+class ThreadsAdapter(
+    private val eventsHandler: EventsAwareInterface,
+    override var glideRequestManager: RequestManager
+) :
+    RecyclerView.Adapter<ThreadsAdapter.ThreadsViewHolder>(),
+    HasGlideRequestManager,
+    ListPreloader.PreloadModelProvider<String> {
     var dataset: List<ThreadEntity> = mutableListOf()
 
     // Provide a reference to the views for each data item
@@ -32,6 +43,7 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
         val textViewId: TextView = itemView.findViewById(R.id.id)
         val textViewTime: TextView = itemView.findViewById(R.id.time)
         val textViewComment: TextView = itemView.findViewById(R.id.comment)
+        val cardViewPostImage: CardView = itemView.findViewById(R.id.imageCard)
         val imageViewPostImage: ImageView = itemView.findViewById(R.id.image)
         val layoutThreadInformation: ConstraintLayout = itemView.findViewById(R.id.threadInformation)
         val textViewPostsCount: TextView = itemView.findViewById(R.id.postsCount)
@@ -43,7 +55,7 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
             textViewId.apply { visibility = View.GONE }
             textViewTime.apply { visibility = View.GONE }
             textViewComment.apply { visibility = View.GONE }
-            imageViewPostImage.apply { visibility = View.GONE }
+            cardViewPostImage.apply { visibility = View.GONE }
             layoutThreadInformation.apply { visibility = View.GONE }
         }
 
@@ -62,6 +74,7 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
         }
 
         init {
+            // @TODO: Maybe we just don't need a progress bar for images.
             // Init progress element.
             circularProgressDrawable = CircularProgressDrawable(imageViewPostImage.context)
             circularProgressDrawable.strokeWidth = 5f
@@ -81,7 +94,10 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
             .inflate(R.layout.list_item_thread, parent, false)
         // set the view's size, margins, paddings and layout parameters
         // ...
-        return ThreadsViewHolder(view, eventsHandler)
+        return ThreadsViewHolder(
+            view,
+            eventsHandler
+        )
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -113,8 +129,8 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
         thread.opPost.comment?.let {
             //holder.textViewComment.text = it
             holder.textViewComment.apply {
-                //text = HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                text = it
+                //text = it
+                text = HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 visibility = View.VISIBLE
             }
 
@@ -139,26 +155,50 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
             }
         }
 
-        // Add attachments
+        // Bind thumbnails of attachments.
         for (attachment in thread.opPost.attachments) {
-            if (attachment is ImageAttachment) {
-                attachment.thumbnail?.let {
-                    holder.imageViewPostImage.apply {
-                        Glide
-                            .with(holder.imageViewPostImage.context)
-                            .load(it)
-                            .centerCrop()
-//                            .placeholder(holder.circularProgressDrawable)
-                            .into(this)
-                        visibility = View.VISIBLE
-                    }
-                }
+            holder.imageViewPostImage.apply {
+                getGlideBuilder(attachment.thumbnailUrl)!!.into(this)
+                holder.cardViewPostImage.visibility = View.VISIBLE
             }
 
-            break
+            break // now we have only 1 image per thread.
         }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     override fun getItemCount() = dataset.size
+
+    override fun getPreloadItems(position: Int): MutableList<String> {
+        return getUrlsOfAttachmentsThumbnails(dataset[position].opPost.attachments)
+    }
+
+    override fun getPreloadRequestBuilder(item: String): RequestBuilder<*>? = getGlideBuilder(item)
+
+    /**
+     * Get URLs of attachments per position.
+     */
+    private fun getUrlsOfAttachmentsThumbnails(attachments: List<AttachmentEntityInterface>): MutableList<String> {
+        val imageAttachmentUrls: MutableList<String> = mutableListOf()
+
+        for (attachment in attachments) {
+            if (attachment !is ImageAttachment) {
+                continue
+            }
+
+            imageAttachmentUrls.add(attachment.thumbnailUrl)
+            break // now we have only 1 image per thread.
+        }
+
+        return imageAttachmentUrls
+    }
+
+    /**
+     * Get Glide builder for image.
+     */
+    private fun getGlideBuilder(item: String): RequestBuilder<*>? {
+        return glideRequestManager
+            .load(item)
+            .centerCrop()
+    }
 }

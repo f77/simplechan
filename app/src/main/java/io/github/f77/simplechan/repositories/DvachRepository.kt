@@ -98,9 +98,10 @@ class DvachRepository : AbstractRepository() {
         for (i in 0 until filesArray.length()) {
             val fileObject = filesArray.getJSONObject(i)
 
-            val image = ImageAttachment(schema + domain + fileObject.getString("path")).apply {
-                thumbnail = schema + domain + fileObject.opt("thumbnail") as String?
-            }
+            val url = schema + domain + fileObject.getString("path")
+            val thumbnailUrl = schema + domain + fileObject.getString("thumbnail")
+
+            val image = ImageAttachment(url, thumbnailUrl)
             resultList.add(image)
         }
 

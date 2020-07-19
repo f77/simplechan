@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.bloc_utils.BlocFragment
+import io.github.f77.simplechan.bloc_utils.EventsAwareInterface
 import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
 import io.github.f77.simplechan.bloc_utils.action.interfaces.NavigateActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
@@ -42,7 +43,6 @@ class BoardsFragment : BlocFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        viewManager = LinearLayoutManager(requireContext())
         return inflater.inflate(R.layout.fragment_boards, container, false)
     }
 
@@ -50,37 +50,13 @@ class BoardsFragment : BlocFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Init views and vars
+        viewManager = LinearLayoutManager(requireContext())
         progressBarView = view.findViewById<ProgressBar>(R.id.progressBar)
         boardsRecyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_boards)
         boardsAdapter = BoardsAdapter(viewModel)
 
         // Configure RecyclerView
-        boardsRecyclerView.apply {
-            // use this setting to improve performance if you know that changes
-            // in content do not change the layout size of the RecyclerView
-            setHasFixedSize(true)
-
-            // use a linear layout manager
-            layoutManager = viewManager
-
-            // specify an viewAdapter (see also next example)
-            adapter = boardsAdapter
-
-            // Add control of the swipes and move.
-            val touchCallback = decorateItemSwipeTouchCallback(
-                requireContext(),
-                ItemSwipeTouchCallback(viewModel)
-            )
-            ItemTouchHelper(touchCallback).attachToRecyclerView(this)
-
-            // Add line separators.
-            boardsRecyclerView.addItemDecoration(
-                DividerItemDecoration(
-                    boardsRecyclerView.context,
-                    DividerItemDecoration.VERTICAL
-                )
-            )
-        }
+        configureRecyclerView(boardsRecyclerView)
     }
 
 
@@ -124,11 +100,34 @@ class BoardsFragment : BlocFragment() {
         }
     }
 
-    private fun decorateItemSwipeTouchCallback(
-        context: Context,
-        callback: ItemSwipeTouchCallback
-    ): ItemSwipeTouchCallback {
-        return callback.apply {
+    private fun configureRecyclerView(recyclerView: RecyclerView) {
+        recyclerView.apply {
+            // use this setting to improve performance if you know that changes
+            // in content do not change the layout size of the RecyclerView
+            setHasFixedSize(true)
+
+            // use a linear layout manager
+            layoutManager = viewManager
+
+            // specify an viewAdapter (see also next example)
+            adapter = boardsAdapter
+
+            // Add control of the swipes and move.
+            val callback = makeItemSwipeTouchCallback(requireContext(), viewModel)
+            ItemTouchHelper(callback).attachToRecyclerView(this)
+
+            // Add line separators.
+            addItemDecoration(
+                DividerItemDecoration(
+                    boardsRecyclerView.context,
+                    DividerItemDecoration.VERTICAL
+                )
+            )
+        }
+    }
+
+    private fun makeItemSwipeTouchCallback(context: Context, viewModel: EventsAwareInterface): ItemSwipeTouchCallback {
+        return ItemSwipeTouchCallback(viewModel).apply {
             isItemViewSwipe = true
             isLongPressDrag = false
             leftSwipeConfig = DeleteSwipeConfig(context)

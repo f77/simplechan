@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
@@ -114,7 +113,8 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
         thread.opPost.comment?.let {
             //holder.textViewComment.text = it
             holder.textViewComment.apply {
-                text = HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                //text = HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                text = it
                 visibility = View.VISIBLE
             }
 
@@ -148,9 +148,8 @@ class ThreadsAdapter(private val eventsHandler: EventsAwareInterface) :
                             .with(holder.imageViewPostImage.context)
                             .load(it)
                             .centerCrop()
-                            .placeholder(holder.circularProgressDrawable)
+//                            .placeholder(holder.circularProgressDrawable)
                             .into(this)
-
                         visibility = View.VISIBLE
                     }
                 }

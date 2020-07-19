@@ -11,6 +11,12 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.ListPreloader.PreloadModelProvider
+import com.bumptech.glide.ListPreloader.PreloadSizeProvider
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader
+import com.bumptech.glide.util.ViewPreloadSizeProvider
 import com.google.android.material.snackbar.Snackbar
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.actions.threads.ThreadInformationSelectedAction
@@ -26,6 +32,7 @@ import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.ui.boards.SelectedBoardViewModel
 import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
 import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
+import java.util.*
 
 class ThreadsFragment : BlocFragment() {
     override val viewModel: ThreadsViewModel by activityViewModels()
@@ -35,6 +42,9 @@ class ThreadsFragment : BlocFragment() {
     private lateinit var threadsRecyclerView: RecyclerView
     private lateinit var threadsAdapter: ThreadsAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
+
+    private val imageWidthPixels = 500
+    private val imageHeightPixels = 500
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,6 +69,13 @@ class ThreadsFragment : BlocFragment() {
         threadsRecyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_threads)
         threadsAdapter = ThreadsAdapter(viewModel)
 
+
+        val sizeProvider: PreloadSizeProvider<String> = ViewPreloadSizeProvider<String>()
+        val modelProvider: PreloadModelProvider<String> = MyPreloadModelProvider()
+        val preloader: RecyclerViewPreloader<String> =
+            RecyclerViewPreloader(Glide.with(this), modelProvider, sizeProvider, 10)
+
+
         // Configure RecyclerView
         threadsRecyclerView.apply {
             // use this setting to improve performance if you know that changes
@@ -80,6 +97,9 @@ class ThreadsFragment : BlocFragment() {
                 ItemSwipeTouchCallback(viewModel)
             )
             ItemTouchHelper(touchCallback).attachToRecyclerView(this)
+
+            // Add glide integration
+            threadsRecyclerView.addOnScrollListener(preloader)
         }
     }
 
@@ -123,6 +143,25 @@ class ThreadsFragment : BlocFragment() {
             isLongPressDrag = false
             leftSwipeConfig = DeleteSwipeConfig(context)
             rightSwipeConfig = EditSwipeConfig(context)
+        }
+    }
+
+    private inner class MyPreloadModelProvider : PreloadModelProvider<String> {
+        override fun getPreloadItems(position: Int): MutableList<String> {
+            val attachments = threadsAdapter.dataset[position].opPost.attachments
+
+            return if (attachments.isEmpty() || attachments.size < 1) {
+                Collections.emptyList()
+            } else {
+                Collections.singletonList(attachments[0].url)
+            }
+        }
+
+        override fun getPreloadRequestBuilder(item: String): RequestBuilder<*>? {
+            return Glide
+                .with(this@ThreadsFragment)
+                .load(item)
+                .centerCrop()
         }
     }
 }

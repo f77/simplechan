@@ -10,4 +10,6 @@
     <string name="menu_home">Home</string>
     <string name="menu_boards">Boards</string>
     <string name="menu_threads">Threads</string>
+
+    <string name="title_error_view">Error!</string>
 </resources>

@@ -27,6 +27,7 @@ class ItemSwipeTouchCallback(override val eventsHandler: EventsAwareInterface) :
         open var labelColor: Int? = null
         open var backgroundColor: Int? = null
         open var icon: Int? = null
+        open var iconTintColor: Int? = null
 
         open fun resolveColorFromAttr(context: Context, @AttrRes attr: Int): Int {
             val color = TypedValue()
@@ -74,11 +75,13 @@ class ItemSwipeTouchCallback(override val eventsHandler: EventsAwareInterface) :
         leftSwipeConfig?.labelColor?.let { builder.setSwipeLeftLabelColor(it) }
         leftSwipeConfig?.backgroundColor?.let { builder.addSwipeLeftBackgroundColor(it) }
         leftSwipeConfig?.icon?.let { builder.addSwipeLeftActionIcon(it) }
+        leftSwipeConfig?.iconTintColor?.let { builder.setSwipeLeftActionIconTint(it) }
 
         rightSwipeConfig?.label?.let { builder.addSwipeRightLabel(it) }
         rightSwipeConfig?.labelColor?.let { builder.setSwipeRightLabelColor(it) }
         rightSwipeConfig?.backgroundColor?.let { builder.addSwipeRightBackgroundColor(it) }
         rightSwipeConfig?.icon?.let { builder.addSwipeRightActionIcon(it) }
+        rightSwipeConfig?.iconTintColor?.let { builder.setSwipeRightActionIconTint(it) }
 
         builder.create().decorate()
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)

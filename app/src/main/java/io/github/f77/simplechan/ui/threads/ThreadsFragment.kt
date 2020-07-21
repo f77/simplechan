@@ -30,23 +30,24 @@ import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.ui.interfaces.HasErrorView
 import io.github.f77.simplechan.ui.interfaces.HasGlideRequestManager
+import io.github.f77.simplechan.ui.interfaces.HasProgressBarView
 import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
 import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
 
-class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView {
+class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView, HasProgressBarView {
+    // Models.
     override val viewModel: ThreadsViewModel by activityViewModels()
+
+    // Views.
+    override lateinit var progressBarView: ProgressBar
+    override lateinit var errorLayout: ConstraintLayout
+    override lateinit var errorTextTextView: TextView
+    override lateinit var errorCodeTextView: TextView
+    private lateinit var threadsRecyclerView: RecyclerView
 
     override lateinit var glideRequestManager: RequestManager
     private lateinit var threadsAdapter: ThreadsAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
-
-    // Views.
-    override lateinit var errorLayout: ConstraintLayout
-    override lateinit var errorTextTextView: TextView
-    override lateinit var errorCodeTextView: TextView
-    private lateinit var progressBarView: ProgressBar
-
-    private lateinit var threadsRecyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,9 +61,8 @@ class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView {
         glideRequestManager = Glide.with(this)
 
         initErrorViews(rootView)
-        progressBarView = rootView.findViewById<ProgressBar>(R.id.progressBar).apply {
-            visibility = View.GONE
-        }
+        initProgressBarViews(rootView)
+
         threadsRecyclerView = rootView.findViewById<RecyclerView>(R.id.recycler_view_threads).apply {
             configureRecyclerView(this)
             visibility = View.GONE

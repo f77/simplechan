@@ -28,24 +28,25 @@ import io.github.f77.simplechan.states.boards.BoardsSuccessState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipesDefaultObserver
 import io.github.f77.simplechan.ui.interfaces.HasErrorView
+import io.github.f77.simplechan.ui.interfaces.HasProgressBarView
 import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
 import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
 import io.github.f77.simplechan.ui.threads.ThreadsViewModel
 
-class BoardsFragment : BlocFragment(), HasErrorView {
+class BoardsFragment : BlocFragment(), HasErrorView, HasProgressBarView {
+    // Models.
     override val viewModel: BoardsViewModel by activityViewModels()
     private val threadsViewModel: ThreadsViewModel by activityViewModels()
 
-    private lateinit var boardsAdapter: BoardsAdapter
-    private lateinit var viewManager: RecyclerView.LayoutManager
-
     // Views.
-    private lateinit var progressBarView: ProgressBar
+    override lateinit var progressBarView: ProgressBar
     override lateinit var errorLayout: ConstraintLayout
     override lateinit var errorTextTextView: TextView
     override lateinit var errorCodeTextView: TextView
-
     private lateinit var boardsRecyclerView: RecyclerView
+
+    private lateinit var boardsAdapter: BoardsAdapter
+    private lateinit var viewManager: RecyclerView.LayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,9 +58,7 @@ class BoardsFragment : BlocFragment(), HasErrorView {
 
     override fun initViews(rootView: View) {
         initErrorViews(rootView)
-        progressBarView = rootView.findViewById<ProgressBar>(R.id.progressBar).apply {
-            visibility = View.GONE
-        }
+        initProgressBarViews(rootView)
 
         boardsRecyclerView = rootView.findViewById<RecyclerView>(R.id.recycler_view_boards).apply {
             initRecyclerView(this)

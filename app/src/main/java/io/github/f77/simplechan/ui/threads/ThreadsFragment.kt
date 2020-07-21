@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,12 +28,12 @@ import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
+import io.github.f77.simplechan.ui.interfaces.HasErrorView
 import io.github.f77.simplechan.ui.interfaces.HasGlideRequestManager
 import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
 import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
 
-class ThreadsFragment : BlocFragment(),
-    HasGlideRequestManager {
+class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView {
     override val viewModel: ThreadsViewModel by activityViewModels()
 
     override lateinit var glideRequestManager: RequestManager
@@ -40,8 +41,11 @@ class ThreadsFragment : BlocFragment(),
     private lateinit var viewManager: RecyclerView.LayoutManager
 
     // Views.
+    override lateinit var errorLayout: ConstraintLayout
+    override lateinit var errorTextTextView: TextView
+    override lateinit var errorCodeTextView: TextView
     private lateinit var progressBarView: ProgressBar
-    private lateinit var errorTextView: TextView
+
     private lateinit var threadsRecyclerView: RecyclerView
 
     override fun onCreateView(
@@ -55,10 +59,8 @@ class ThreadsFragment : BlocFragment(),
     override fun initViews(rootView: View) {
         glideRequestManager = Glide.with(this)
 
+        initErrorViews(rootView)
         progressBarView = rootView.findViewById<ProgressBar>(R.id.progressBar).apply {
-            visibility = View.GONE
-        }
-        errorTextView = rootView.findViewById<TextView>(R.id.errorText).apply {
             visibility = View.GONE
         }
         threadsRecyclerView = rootView.findViewById<RecyclerView>(R.id.recycler_view_threads).apply {
@@ -92,7 +94,7 @@ class ThreadsFragment : BlocFragment(),
     private fun renderLoading(state: LoadingStateInterface) {
         TransitionManager.beginDelayedTransition(rootViewGroup)
         progressBarView.visibility = View.VISIBLE
-        errorTextView.visibility = View.GONE
+        errorLayout.visibility = View.GONE
         threadsRecyclerView.visibility = View.GONE
     }
 
@@ -101,11 +103,8 @@ class ThreadsFragment : BlocFragment(),
 
         TransitionManager.beginDelayedTransition(rootViewGroup)
         progressBarView.visibility = View.GONE
-        errorTextView.apply {
-            visibility = View.VISIBLE
-            text = state.exception.message
-        }
         threadsRecyclerView.visibility = View.GONE
+        setError(state.exception.message)
     }
 
     private fun renderSuccess(state: ThreadsSuccessfulState) {
@@ -115,7 +114,7 @@ class ThreadsFragment : BlocFragment(),
 
         TransitionManager.beginDelayedTransition(rootViewGroup)
         progressBarView.visibility = View.GONE
-        errorTextView.visibility = View.GONE
+        errorLayout.visibility = View.GONE
         threadsRecyclerView.visibility = View.VISIBLE
     }
 

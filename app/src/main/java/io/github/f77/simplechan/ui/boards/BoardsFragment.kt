@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -26,11 +27,12 @@ import io.github.f77.simplechan.events.threads.ThreadsBoardGivenEvent
 import io.github.f77.simplechan.states.boards.BoardsSuccessState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipesDefaultObserver
+import io.github.f77.simplechan.ui.interfaces.HasErrorView
 import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
 import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
 import io.github.f77.simplechan.ui.threads.ThreadsViewModel
 
-class BoardsFragment : BlocFragment() {
+class BoardsFragment : BlocFragment(), HasErrorView {
     override val viewModel: BoardsViewModel by activityViewModels()
     private val threadsViewModel: ThreadsViewModel by activityViewModels()
 
@@ -39,7 +41,10 @@ class BoardsFragment : BlocFragment() {
 
     // Views.
     private lateinit var progressBarView: ProgressBar
-    private lateinit var errorTextView: TextView
+    override lateinit var errorLayout: ConstraintLayout
+    override lateinit var errorTextTextView: TextView
+    override lateinit var errorCodeTextView: TextView
+
     private lateinit var boardsRecyclerView: RecyclerView
 
     override fun onCreateView(
@@ -51,12 +56,11 @@ class BoardsFragment : BlocFragment() {
     }
 
     override fun initViews(rootView: View) {
+        initErrorViews(rootView)
         progressBarView = rootView.findViewById<ProgressBar>(R.id.progressBar).apply {
             visibility = View.GONE
         }
-        errorTextView = rootView.findViewById<TextView>(R.id.errorText).apply {
-            visibility = View.GONE
-        }
+
         boardsRecyclerView = rootView.findViewById<RecyclerView>(R.id.recycler_view_boards).apply {
             initRecyclerView(this)
             visibility = View.GONE
@@ -99,7 +103,7 @@ class BoardsFragment : BlocFragment() {
 
         TransitionManager.beginDelayedTransition(rootViewGroup)
         progressBarView.visibility = View.VISIBLE
-        errorTextView.visibility = View.GONE
+        errorLayout.visibility = View.GONE
         boardsRecyclerView.visibility = View.GONE
     }
 
@@ -109,11 +113,8 @@ class BoardsFragment : BlocFragment() {
 
         TransitionManager.beginDelayedTransition(rootViewGroup)
         progressBarView.visibility = View.GONE
-        errorTextView.apply {
-            visibility = View.VISIBLE
-            text = state.exception.message
-        }
         boardsRecyclerView.visibility = View.GONE
+        setError(state.exception.message)
     }
 
     private fun renderSuccess(state: BoardsSuccessState) {
@@ -123,7 +124,7 @@ class BoardsFragment : BlocFragment() {
 
         TransitionManager.beginDelayedTransition(rootViewGroup)
         progressBarView.visibility = View.GONE
-        errorTextView.visibility = View.GONE
+        errorLayout.visibility = View.GONE
         boardsRecyclerView.visibility = View.VISIBLE
     }
 

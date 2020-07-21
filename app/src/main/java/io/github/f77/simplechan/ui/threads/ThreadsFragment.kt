@@ -2,12 +2,13 @@ package io.github.f77.simplechan.ui.threads
 
 import android.content.Context
 import android.os.Bundle
+import android.transition.TransitionManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,7 +17,6 @@ import com.bumptech.glide.ListPreloader.PreloadSizeProvider
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader
 import com.bumptech.glide.util.ViewPreloadSizeProvider
-import com.google.android.material.snackbar.Snackbar
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.actions.threads.ThreadInformationSelectedAction
 import io.github.f77.simplechan.bloc_utils.BlocFragment
@@ -25,11 +25,8 @@ import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
-import io.github.f77.simplechan.entities.BoardEntity
-import io.github.f77.simplechan.events.threads.ThreadsBoardGivenEvent
 import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
-import io.github.f77.simplechan.ui.boards.SelectedBoardViewModel
 import io.github.f77.simplechan.ui.interfaces.HasGlideRequestManager
 import io.github.f77.simplechan.ui.swipe_configs.DeleteSwipeConfig
 import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
@@ -37,13 +34,15 @@ import io.github.f77.simplechan.ui.swipe_configs.EditSwipeConfig
 class ThreadsFragment : BlocFragment(),
     HasGlideRequestManager {
     override val viewModel: ThreadsViewModel by activityViewModels()
-    private val selectedBoardModel: SelectedBoardViewModel by activityViewModels()
 
     override lateinit var glideRequestManager: RequestManager
-    private lateinit var progressBarView: ProgressBar
-    private lateinit var threadsRecyclerView: RecyclerView
     private lateinit var threadsAdapter: ThreadsAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
+
+    // Views.
+    private lateinit var progressBarView: ProgressBar
+    private lateinit var errorTextView: TextView
+    private lateinit var threadsRecyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,58 +52,77 @@ class ThreadsFragment : BlocFragment(),
         return inflater.inflate(R.layout.fragment_threads, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Init views and vars
+    override fun initViews(rootView: View) {
         glideRequestManager = Glide.with(this)
-        progressBarView = view.findViewById(R.id.progressBar)
-        threadsRecyclerView = view.findViewById(R.id.recycler_view_threads)
-        threadsAdapter = ThreadsAdapter(viewModel, glideRequestManager)
-        viewManager = LinearLayoutManager(requireContext())
 
-        // Configure RecyclerView
-        configureRecyclerView(threadsRecyclerView)
-
-        // Get the board from previous fragment.
-        selectedBoardModel.data.observe(viewLifecycleOwner, Observer {
-            it as BoardEntity
-            viewModel.addEvent(ThreadsBoardGivenEvent(it))
-        })
+        progressBarView = rootView.findViewById<ProgressBar>(R.id.progressBar).apply {
+            visibility = View.GONE
+        }
+        errorTextView = rootView.findViewById<TextView>(R.id.errorText).apply {
+            visibility = View.GONE
+        }
+        threadsRecyclerView = rootView.findViewById<RecyclerView>(R.id.recycler_view_threads).apply {
+            configureRecyclerView(this)
+            visibility = View.GONE
+        }
     }
 
-    override fun observeActions(): Observer<ActionInterface> = Observer {
-        when (it) {
+    override fun handleAction(action: ActionInterface) {
+        when (action) {
             is ThreadInformationSelectedAction -> {
                 //println("THREAD INFORMATION CLICKED ON " + threadsAdapter.dataset[it.position])
             }
         }
     }
 
-    override fun observeStates(): Observer<StateInterface> = Observer {
-        when (it) {
+    override fun render(state: StateInterface) {
+        when (state) {
             is LoadingStateInterface -> {
-                println("THREADS LOADING STATE")
-                progressBarView.visibility = View.VISIBLE
+                renderLoading(state)
             }
             is ErrorStateInterface -> {
-                println("THREADS ERROR STATE")
-                progressBarView.visibility = View.INVISIBLE
-                it.exception.printStackTrace()
-                Snackbar.make(rootView, it.exception.message.toString(), Snackbar.LENGTH_LONG).show()
+                renderError(state)
             }
             is ThreadsSuccessfulState -> {
-                println("THREADS DATA SUCCESSFULLY RECEIVED!")
-                progressBarView.visibility = View.INVISIBLE
-
-                // Directly copy link to the dataset from the model.
-                threadsAdapter.dataset = it.threads
-                threadsAdapter.notifyDataSetChanged()
+                renderSuccess(state)
             }
         }
     }
 
+    private fun renderLoading(state: LoadingStateInterface) {
+        TransitionManager.beginDelayedTransition(rootViewGroup)
+        progressBarView.visibility = View.VISIBLE
+        errorTextView.visibility = View.GONE
+        threadsRecyclerView.visibility = View.GONE
+    }
+
+    private fun renderError(state: ErrorStateInterface) {
+        state.exception.printStackTrace()
+
+        TransitionManager.beginDelayedTransition(rootViewGroup)
+        progressBarView.visibility = View.GONE
+        errorTextView.apply {
+            visibility = View.VISIBLE
+            text = state.exception.message
+        }
+        threadsRecyclerView.visibility = View.GONE
+    }
+
+    private fun renderSuccess(state: ThreadsSuccessfulState) {
+        // Directly copy link to the dataset from the model.
+        threadsAdapter.dataset = state.threads
+        threadsAdapter.notifyDataSetChanged()
+
+        TransitionManager.beginDelayedTransition(rootViewGroup)
+        progressBarView.visibility = View.GONE
+        errorTextView.visibility = View.GONE
+        threadsRecyclerView.visibility = View.VISIBLE
+    }
+
     private fun configureRecyclerView(recyclerView: RecyclerView) {
+        viewManager = LinearLayoutManager(requireContext())
+        threadsAdapter = ThreadsAdapter(viewModel, glideRequestManager)
+
         // Configure Glide's integration with RecyclerView.
         val sizeProvider: PreloadSizeProvider<String> = ViewPreloadSizeProvider<String>()
         val preloader: RecyclerViewPreloader<String> =
@@ -137,8 +155,8 @@ class ThreadsFragment : BlocFragment(),
         return ItemSwipeTouchCallback(viewModel).apply {
             isItemViewSwipe = true
             isLongPressDrag = false
-            leftSwipeConfig = DeleteSwipeConfig(context)
-            rightSwipeConfig = EditSwipeConfig(context)
+            leftSwipeConfig = EditSwipeConfig(context)
+            rightSwipeConfig = DeleteSwipeConfig(context)
         }
     }
 }

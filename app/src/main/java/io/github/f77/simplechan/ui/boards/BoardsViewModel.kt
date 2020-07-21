@@ -10,6 +10,7 @@ import io.github.f77.simplechan.entities.BoardEntity
 import io.github.f77.simplechan.repositories.DvachRepository
 import io.github.f77.simplechan.repositories.ImageboardRepositoryInterface
 import io.github.f77.simplechan.states.boards.BoardsSuccessState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.*
@@ -27,14 +28,6 @@ class BoardsViewModel : BlocViewModel() {
     }
 
     /**
-     * Log all events.
-     */
-    override suspend fun onEvent(event: EventInterface) {
-        super.onEvent(event)
-        println("EVENT_FIRED: " + event::class)
-    }
-
-    /**
      * Actions are like events, but directed from viewModel to UI.
      * For example, navigation events, SnackBar, dialog, etc.
      */
@@ -47,14 +40,14 @@ class BoardsViewModel : BlocViewModel() {
                 emit(Actions.simpleSnackBar("LONG CLICKED ON " + event.position))
             }
             is ItemSwipedLeftEventInterface -> {
-                _boards.removeAt(event.position)
-
-                emit(Actions.itemRemoved(event.position))
-            }
-            is ItemSwipedRightEventInterface -> {
                 _boards[event.position].name = "edited!"
 
                 emit(Actions.itemChanged(event.position))
+            }
+            is ItemSwipedRightEventInterface -> {
+                _boards.removeAt(event.position)
+
+                emit(Actions.itemRemoved(event.position))
             }
             is ItemMovedEventInterface -> {
                 if (event.fromPosition < event.toPosition) {

@@ -14,6 +14,7 @@ import io.github.f77.simplechan.events.threads.ThreadsBoardGivenEvent
 import io.github.f77.simplechan.repositories.DvachRepository
 import io.github.f77.simplechan.repositories.ImageboardRepositoryInterface
 import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

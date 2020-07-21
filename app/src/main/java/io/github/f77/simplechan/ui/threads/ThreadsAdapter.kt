@@ -31,7 +31,12 @@ class ThreadsAdapter(
     RecyclerView.Adapter<ThreadsAdapter.ThreadsViewHolder>(),
     HasGlideRequestManager,
     ListPreloader.PreloadModelProvider<String> {
+
     var dataset: List<ThreadEntity> = mutableListOf()
+
+    companion object {
+        const val DATE_FORMAT: String = "yyyy.MM.dd HH:mm:ss"
+    }
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -48,16 +53,6 @@ class ThreadsAdapter(
         val layoutThreadInformation: ConstraintLayout = itemView.findViewById(R.id.threadInformation)
         val textViewPostsCount: TextView = itemView.findViewById(R.id.postsCount)
         val textViewFilesCount: TextView = itemView.findViewById(R.id.filesCount)
-
-        init {
-            // All view are gone by default.
-            textViewPosition.apply { visibility = View.GONE }
-            textViewId.apply { visibility = View.GONE }
-            textViewTime.apply { visibility = View.GONE }
-            textViewComment.apply { visibility = View.GONE }
-            cardViewPostImage.apply { visibility = View.GONE }
-            layoutThreadInformation.apply { visibility = View.GONE }
-        }
 
         init {
             // Add callbacks.
@@ -81,6 +76,16 @@ class ThreadsAdapter(
             circularProgressDrawable.centerRadius = 30f
             circularProgressDrawable.start()
         }
+
+        fun hideAllViews() {
+            // All view are gone by default.
+            textViewPosition.apply { visibility = View.GONE }
+            textViewId.apply { visibility = View.GONE }
+            textViewTime.apply { visibility = View.GONE }
+            textViewComment.apply { visibility = View.GONE }
+            cardViewPostImage.apply { visibility = View.GONE }
+            layoutThreadInformation.apply { visibility = View.GONE }
+        }
     }
 
 
@@ -94,10 +99,7 @@ class ThreadsAdapter(
             .inflate(R.layout.list_item_thread, parent, false)
         // set the view's size, margins, paddings and layout parameters
         // ...
-        return ThreadsViewHolder(
-            view,
-            eventsHandler
-        )
+        return ThreadsViewHolder(view, eventsHandler)
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -105,6 +107,9 @@ class ThreadsAdapter(
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         val thread = dataset[position]
+
+        // All view are gone by default.
+        holder.hideAllViews()
 
         holder.textViewPosition.apply {
             text = "#" + (holder.adapterPosition + 1).toString()
@@ -117,7 +122,7 @@ class ThreadsAdapter(
         }
 
         thread.opPost.timestamp?.let {
-            val formattedTime: String = SimpleDateFormat("yyyy.MM.dd HH:mm:ss")
+            val formattedTime: String = SimpleDateFormat(DATE_FORMAT)
                 .format(Date(it.toLong() * 1000))
 
             holder.textViewTime.apply {
@@ -135,7 +140,7 @@ class ThreadsAdapter(
             }
 
             holder.textViewComment.post {
-                println("LINES: " + holder.textViewComment.lineCount)
+                //println("LINES: " + holder.textViewComment.lineCount)
             }
         }
 
@@ -160,6 +165,7 @@ class ThreadsAdapter(
             holder.imageViewPostImage.apply {
                 getGlideBuilder(attachment.thumbnailUrl)!!.into(this)
                 holder.cardViewPostImage.visibility = View.VISIBLE
+                println("THUMBNAIL BINDED: " + attachment.thumbnailUrl)
             }
 
             break // now we have only 1 image per thread.

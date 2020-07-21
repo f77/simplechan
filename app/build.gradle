@@ -13,21 +13,39 @@ android {
         versionCode 1
         versionName "1.0"
 
+        buildConfigField 'long', 'BUILD_TIMESTAMP', System.currentTimeMillis() + 'L'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    signingConfigs {
+        general {
+            storeFile rootProject.file(keystoreProperties['store.file'])
+            storePassword rootProject.keystoreProperties['store.password']
+            keyAlias rootProject.keystoreProperties['key.alias']
+            keyPassword rootProject.keystoreProperties['key.password']
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.general
+        }
+        debug {
+            signingConfig signingConfigs.general
+        }
     }
 }
 
@@ -57,7 +75,7 @@ dependencies {
         // Excludes the support library because it's already included by Glide.
         transitive = false
     }
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }

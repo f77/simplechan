@@ -2,6 +2,7 @@ package io.github.f77.simplechan.bloc_utils
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -14,47 +15,63 @@ import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import io.github.f77.simplechan.events.main_activity.TitleUpdatedEvent
 import io.github.f77.simplechan.ui.main_activity.MainActivityViewModel
 
-
 abstract class BlocFragment : Fragment() {
     protected abstract val viewModel: BlocViewModelInterface
-    protected lateinit var rootView: View
+    protected lateinit var rootViewGroup: ViewGroup
 
     private val _mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
-    abstract fun observeActions(): Observer<ActionInterface>
-    abstract fun observeStates(): Observer<StateInterface>
+    /**
+     * Handle given action.
+     */
+    protected abstract fun handleAction(action: ActionInterface)
+
+    /**
+     * Render given state.
+     */
+    protected abstract fun render(state: StateInterface)
+
+    /**
+     * Find and initialize all needed views here.
+     */
+    protected abstract fun initViews(rootView: View)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        rootView = view
+
         viewModel.actions.observe(viewLifecycleOwner, realActionsObserver())
-        viewModel.state.observe(viewLifecycleOwner, observeStates())
+        viewModel.state.observe(viewLifecycleOwner, Observer {
+            render(it)
+        })
+
+        // Initialize views.
+        rootViewGroup = view as ViewGroup
+        initViews(view)
     }
 
     /**
-     * Some actions from fragment viewModel should to be forwarded into the main activity's viewModel.
-     * @return Was the event forwarded to the main activity's viewModel?
+     * Some actions should to be forwarded from fragment's ViewModel to the main activity's ViewModel.
      */
-    protected open fun resendActionsToMainActivityViewModel(action: ActionInterface): Boolean {
-        var event: EventInterface? = null
+    protected open fun mapActionToMainActivityEvent(action: ActionInterface): EventInterface? {
         when (action) {
             is TitleUpdatedAction -> {
-                event = TitleUpdatedEvent(action.title)
+                return TitleUpdatedEvent(action.title)
             }
             is SimpleSnackBarActionInterface -> {
-                event = Events.simpleSnackBar(action.message)
+                return Events.simpleSnackBar(action.message)
             }
         }
 
-        event?.let {
-            _mainActivityViewModel.addEvent(event)
-        }
-        return (event !== null)
+        return null
     }
 
     private fun realActionsObserver(): Observer<ActionInterface> = Observer {
-        if (!resendActionsToMainActivityViewModel(it)) {
-            observeActions().onChanged(it)
+        val mainActivityEvent = mapActionToMainActivityEvent(it)
+
+        if (mainActivityEvent === null) {
+            handleAction(it)
+        } else {
+            _mainActivityViewModel.addEvent(mainActivityEvent)
         }
     }
 }

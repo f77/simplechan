@@ -31,7 +31,6 @@ class ThreadsAdapter(
     RecyclerView.Adapter<ThreadsAdapter.ThreadsViewHolder>(),
     HasGlideRequestManager,
     ListPreloader.PreloadModelProvider<String> {
-
     var dataset: List<ThreadEntity> = mutableListOf()
 
     companion object {
@@ -165,7 +164,6 @@ class ThreadsAdapter(
             holder.imageViewPostImage.apply {
                 getGlideBuilder(attachment.thumbnailUrl)!!.into(this)
                 holder.cardViewPostImage.visibility = View.VISIBLE
-                println("THUMBNAIL BINDED: " + attachment.thumbnailUrl)
             }
 
             break // now we have only 1 image per thread.

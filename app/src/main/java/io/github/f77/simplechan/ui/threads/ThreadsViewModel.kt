@@ -9,6 +9,7 @@ import io.github.f77.simplechan.bloc_utils.event.*
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import io.github.f77.simplechan.bloc_utils.state.States
 import io.github.f77.simplechan.entities.ThreadEntity
+import io.github.f77.simplechan.events.threads.ThreadClosedEvent
 import io.github.f77.simplechan.events.threads.ThreadImageClicked
 import io.github.f77.simplechan.events.threads.ThreadInformationClickedEvent
 import io.github.f77.simplechan.events.threads.ThreadsBoardGivenEvent
@@ -52,6 +53,10 @@ class ThreadsViewModel : BlocViewModel() {
                 // Immediately update the title, before any network requests.
                 emit(TitleUpdatedAction(title))
             }
+            is ThreadClosedEvent -> {
+                // @TODO: Temporary solution! Model must not have its own state!
+                _threads.clear()
+            }
         }
     }
 
@@ -74,9 +79,5 @@ class ThreadsViewModel : BlocViewModel() {
                 }
             }
         }
-    }
-
-    fun cleanCache() {
-        _threads.clear()
     }
 }

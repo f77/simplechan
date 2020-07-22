@@ -26,6 +26,7 @@ import io.github.f77.simplechan.bloc_utils.action.interfaces.ActionInterface
 import io.github.f77.simplechan.bloc_utils.state.ErrorStateInterface
 import io.github.f77.simplechan.bloc_utils.state.LoadingStateInterface
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
+import io.github.f77.simplechan.events.threads.ThreadClosedEvent
 import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
 import io.github.f77.simplechan.swipes_decoration_utils.ItemSwipeTouchCallback
 import io.github.f77.simplechan.ui.interfaces.HasErrorView
@@ -55,6 +56,11 @@ class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView, Ha
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_threads, container, false)
+    }
+
+    override fun onDestroyView() {
+        viewModel.addEvent(ThreadClosedEvent())
+        super.onDestroyView()
     }
 
     override fun initViews(rootView: View) {
@@ -160,10 +166,5 @@ class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView, Ha
             leftSwipeConfig = EditSwipeConfig(context)
             rightSwipeConfig = DeleteSwipeConfig(context)
         }
-    }
-
-    override fun onDestroyView() {
-        viewModel.cleanCache()
-        super.onDestroyView()
     }
 }

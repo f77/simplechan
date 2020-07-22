@@ -19,6 +19,7 @@ import io.github.f77.simplechan.bloc_utils.event.Events
 import io.github.f77.simplechan.entities.ThreadEntity
 import io.github.f77.simplechan.entities.attachment.AttachmentEntityInterface
 import io.github.f77.simplechan.entities.attachment.ImageAttachment
+import io.github.f77.simplechan.events.threads.ThreadImageClicked
 import io.github.f77.simplechan.events.threads.ThreadInformationClickedEvent
 import io.github.f77.simplechan.ui.interfaces.HasGlideRequestManager
 import java.text.SimpleDateFormat
@@ -35,6 +36,8 @@ class ThreadsAdapter(
 
     companion object {
         const val DATE_FORMAT: String = "yyyy.MM.dd HH:mm:ss"
+        const val GLIDE_WIDTH: Int = 300
+        const val GLIDE_HEIGHT: Int = 300
     }
 
     // Provide a reference to the views for each data item
@@ -64,6 +67,9 @@ class ThreadsAdapter(
             })
             layoutThreadInformation.setOnClickListener {
                 eventsHandler.addEvent(ThreadInformationClickedEvent(adapterPosition))
+            }
+            cardViewPostImage.setOnClickListener {
+                eventsHandler.addEvent(ThreadImageClicked(adapterPosition))
             }
         }
 
@@ -203,6 +209,7 @@ class ThreadsAdapter(
     private fun getGlideBuilder(item: String): RequestBuilder<*>? {
         return glideRequestManager
             .load(item)
+            .override(GLIDE_WIDTH, GLIDE_HEIGHT)
             .centerCrop()
     }
 }

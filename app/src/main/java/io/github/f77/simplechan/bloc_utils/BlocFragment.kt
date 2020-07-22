@@ -22,6 +22,11 @@ abstract class BlocFragment : Fragment() {
     private val _mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
     /**
+     * Find and initialize all needed views here.
+     */
+    protected abstract fun initViews(rootView: View)
+
+    /**
      * Handle given action.
      */
     protected abstract fun handleAction(action: ActionInterface)
@@ -30,11 +35,6 @@ abstract class BlocFragment : Fragment() {
      * Render given state.
      */
     protected abstract fun render(state: StateInterface)
-
-    /**
-     * Find and initialize all needed views here.
-     */
-    protected abstract fun initViews(rootView: View)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

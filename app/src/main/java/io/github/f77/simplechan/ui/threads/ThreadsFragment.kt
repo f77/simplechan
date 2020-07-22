@@ -2,7 +2,6 @@ package io.github.f77.simplechan.ui.threads
 
 import android.content.Context
 import android.os.Bundle
-import android.transition.TransitionManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,11 +12,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.ListPreloader.PreloadSizeProvider
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader
-import com.bumptech.glide.util.ViewPreloadSizeProvider
+import com.bumptech.glide.util.FixedPreloadSizeProvider
 import io.github.f77.simplechan.R
 import io.github.f77.simplechan.actions.threads.ThreadInformationSelectedAction
 import io.github.f77.simplechan.bloc_utils.BlocFragment
@@ -112,7 +112,9 @@ class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView, Ha
         threadsAdapter.dataset = state.threads
         threadsAdapter.notifyDataSetChanged()
 
+        // @TODO: Be careful with this animation.
         TransitionManager.beginDelayedTransition(rootViewGroup)
+
         progressBarView.visibility = View.GONE
         errorLayout.visibility = View.GONE
         threadsRecyclerView.visibility = View.VISIBLE
@@ -123,7 +125,8 @@ class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView, Ha
         threadsAdapter = ThreadsAdapter(viewModel, glideRequestManager)
 
         // Configure Glide's integration with RecyclerView.
-        val sizeProvider: PreloadSizeProvider<String> = ViewPreloadSizeProvider<String>()
+        val sizeProvider: PreloadSizeProvider<String> =
+            FixedPreloadSizeProvider<String>(ThreadsAdapter.GLIDE_WIDTH, ThreadsAdapter.GLIDE_HEIGHT)
         val preloader: RecyclerViewPreloader<String> =
             RecyclerViewPreloader(glideRequestManager, threadsAdapter, sizeProvider, 10)
 

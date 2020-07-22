@@ -9,12 +9,12 @@ import io.github.f77.simplechan.bloc_utils.event.*
 import io.github.f77.simplechan.bloc_utils.state.StateInterface
 import io.github.f77.simplechan.bloc_utils.state.States
 import io.github.f77.simplechan.entities.ThreadEntity
+import io.github.f77.simplechan.events.threads.ThreadImageClicked
 import io.github.f77.simplechan.events.threads.ThreadInformationClickedEvent
 import io.github.f77.simplechan.events.threads.ThreadsBoardGivenEvent
 import io.github.f77.simplechan.repositories.DvachRepository
 import io.github.f77.simplechan.repositories.ImageboardRepositoryInterface
 import io.github.f77.simplechan.states.threads.ThreadsSuccessfulState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -41,6 +41,9 @@ class ThreadsViewModel : BlocViewModel() {
             is ThreadInformationClickedEvent -> {
                 emit(Actions.simpleSnackBar("THREAD INFORMATION CLICKED ON " + event.position))
                 emit(ThreadInformationSelectedAction(event.position))
+            }
+            is ThreadImageClicked -> {
+                emit(Actions.simpleSnackBar("THREAD IMAGE CLICKED ON " + event.position))
             }
             is ThreadsBoardGivenEvent -> {
                 var title = "/" + event.board.id + "/"

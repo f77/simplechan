@@ -75,4 +75,8 @@ class ThreadsViewModel : BlocViewModel() {
             }
         }
     }
+
+    fun cleanCache() {
+        _threads.clear()
+    }
 }

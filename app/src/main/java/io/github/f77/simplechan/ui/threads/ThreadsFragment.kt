@@ -161,4 +161,9 @@ class ThreadsFragment : BlocFragment(), HasGlideRequestManager, HasErrorView, Ha
             rightSwipeConfig = DeleteSwipeConfig(context)
         }
     }
+
+    override fun onDestroyView() {
+        viewModel.cleanCache()
+        super.onDestroyView()
+    }
 }
